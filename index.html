@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>نموذج بيانات المربي</title>
+<style>
+  /* ========== إعدادات عامة ========== */
+  * { box-sizing: border-box; }
+  body {
+    font-family: Tahoma, Arial, sans-serif;
+    margin: 0;
+    padding: 10px;
+    background: #d9d9d9;
+    direction: rtl;
+  }
+
+  /* ========== شريط علوي ========== */
+  .top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 20px;
+    background: #f8ffff;
+    border: 4px solid #00b8d9;
+    padding: 8px 10px;
+    border-radius: 4px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+  .top-bar .row { display: flex; align-items: center; gap: 8px; }
+  .top-bar label { font-weight: bold; }
+  .top-bar input {
+    width: 265px;
+    padding: 5px;
+    border: 2px solid #ddd;
+    border-radius: 3px;
+  }
+
+  /* ========== تخطيط البطاقات ========== */
+  .main-container { display: flex; gap: 14px; align-items: flex-start; }
+  .right-panel {
+    flex: 1;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+  }
+  .card {
+    background: #f8ffff;
+    border: 4px solid #00b8d9;
+    border-radius: 4px;
+    padding: 8px;
+    display: flex;
+    flex-direction: column;
+  }
+  .card h3 {
+    background: #00b8d9;
+    color: #fff;
+    padding: 6px;
+    text-align: center;
+    margin: -8px -8px 8px -8px;
+    font-size: 1rem;
+  }
+
+  /* ========== الصفوف والمدخلات ========== */
+  .row { display: flex; justify-content: space-between; margin: 4px 0; }
+  .row label { width: 100px; }
+  input, select {
+    padding: 4px 6px;
+    border: 2px solid #ddd;
+    border-radius: 3px;
+    font-size: 13px;
+  }
+  .row input, .row select { width: 250px; }
+
+  /* ========== شبكة الحيوانات ========== */
+  .animals-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+  .animal-item { display: flex; align-items: center; gap: 5px; font-size: 13px; }
+  .animal-item label { width: 50px; }
+  .animal-item input { width: 80px; }
+
+  textarea {
+    width: 90%;
+    height: 70px;
+    display: block;
+    margin: 12px auto;
+    font-size: 12px;
+    padding: 5px;
+    box-sizing: border-box;
+  }
+
+  #dataEntryInput, #dataUpdaterInput, #financialDate {
+    display: block;
+    width: 100%;
+    margin: 5px 0 10px 0;
+  }
+  #financialDate { direction: ltr; unicode-bidi: normal; }
+
+  /* ========== بطاقة البحث ========== */
+  .merged-empty-card {
+    grid-column: span 3;
+    min-height: 280px;
+  }
+  #searchResultsContainer {
+    border-top: 1px solid #ddd;
+    margin-top: 10px;
+    max-height: 300px;
+    overflow: auto;
+  }
+  #searchResultsTable {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  #searchResultsTable th, #searchResultsTable td {
+    border: 1px solid #ccc;
+    padding: 6px 4px;
+    text-align: center;
+    white-space: nowrap;
+  }
+  #searchResultsTable th { background: #f0f0f0; }
+  #searchResultsTable tbody tr { cursor: pointer; }
+  #searchResultsTable tbody tr:hover { background: #eef9fc; }
+
+  /* ========== الأزرار ========== */
+  .full-width { grid-column: 1 / -1; }
+  .btns {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    margin: 4px 0;
+    flex-wrap: wrap;
+  }
+  button {
+    padding: 8px 20px;
+    border: 0;
+    border-radius: 5px;
+    font-weight: bold;
+    cursor: pointer;
+    color: #fff;
+  }
+  button:disabled { opacity: 0.6; cursor: not-allowed; }
+  .save   { background: #2bb673; }
+  .update { background: #f39c12; }
+  .clear  { background: #ffb347; }
+  .delete { background: #8e44ad; }
+  .close  { background: #e65050; }
+  .main-menu { background: #3498db; }
+
+  /* ========== Toast ========== */
+  .toast {
+    position: fixed;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #333;
+    color: #fff;
+    padding: 12px 20px;
+    border-radius: 8px;
+    font-size: 16px;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.2);
+    transition: opacity 0.3s ease;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .toast.success { background-color: #2bb673; }
+  .toast.error   { background-color: #e65050; }
+  .toast.show    { opacity: 1; }
+
+  /* ========== Modal تأكيد ========== */
+  .custom-modal {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+  }
+  .modal-box {
+    background: #fff;
+    border: 4px solid #00b8d9;
+    border-radius: 8px;
+    padding: 24px 30px;
+    min-width: 300px;
+    text-align: center;
+    box-shadow: 0 8px 30px rgba(0,0,0,0.2);
+    animation: popIn 0.2s ease;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to   { transform: scale(1);   opacity: 1; }
+  }
+  .modal-box h3 { margin: 0 0 12px 0; color: #00b8d9; font-size: 1.1rem; }
+  .modal-box p  { margin: 0 0 20px 0; font-size: 14px; color: #333; }
+  .modal-buttons { display: flex; justify-content: center; gap: 16px; }
+  .confirm-btn {
+    background: #2bb673; color: #fff; padding: 8px 28px;
+    border: none; border-radius: 5px; font-weight: bold; cursor: pointer;
+  }
+  .cancel-btn {
+    background: #e65050; color: #fff; padding: 8px 28px;
+    border: none; border-radius: 5px; font-weight: bold; cursor: pointer;
+  }
+
+  /* ========== شاشة إعداد ========== */
+  .setup-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.7);
+    display: flex; align-items: center; justify-content: center;
+    z-index: 10000;
+  }
+  .setup-box {
+    background: #fff; padding: 24px; border-radius: 8px;
+    max-width: 500px; width: 90%;
+  }
+  .setup-box h3 { margin-top: 0; color: #00b8d9; }
+  .setup-box input {
+    width: 100%; padding: 8px; margin: 10px 0;
+    border: 2px solid #ddd; border-radius: 4px;
+  }
+  .setup-box button {
+    background: #2bb673; padding: 10px 20px; width: 100%;
+  }
+
+  /* ========== استجابة ========== */
+  @media (max-width: 1100px) {
+    .main-container { flex-direction: column; }
+    .right-panel { grid-template-columns: 1fr; }
+    .merged-empty-card { grid-column: span 1; min-height: auto; }
+  }
+
+  input[readonly] { background-color: #f0f0f0; cursor: default; }
+</style>
+</head>
+<body>
+
+<!-- شاشة إعداد رابط الـ API (تظهر مرة واحدة) -->
+<div class="setup-overlay" id="setupOverlay" style="display:none;">
+  <div class="setup-box">
+    <h3>🔧 إعداد رابط الخدمة</h3>
+    <p>الصق رابط الـ Web App الخاص بـ Google Apps Script:</p>
+    <input type="text" id="apiUrlInput" placeholder="https://script.google.com/macros/s/.../exec">
+    <button onclick="saveApiUrl()">حفظ والمتابعة</button>
+    <p style="font-size:12px; color:#666; margin-top:15px;">
+      سيتم حفظ الرابط في المتصفح ولن تحتاج لإدخاله مرة أخرى.
+    </p>
+  </div>
+</div>
+
+<div class="top-bar">
+  <div class="row">
+    <label>📞 أختر الرقم</label>
+    <input list="phoneList" id="phoneInput" placeholder="اختر أو اكتب رقم الهاتف">
+    <datalist id="phoneList"></datalist>
+  </div>
+  <div>
+    <button onclick="changeApiUrl()" style="background:#7f8c8d; padding:4px 10px; font-size:11px;">⚙️ تغيير الرابط</button>
+  </div>
+</div>
+
+<div class="main-container">
+  <div class="right-panel">
+
+    <!-- بطاقة بيانات المربي -->
+    <div class="card">
+      <h3>بيانات المربي</h3>
+      <div class="row"><label>رقم الهاتف</label><input id="caseNumber"></div>
+      <div class="row"><label>الاسم الثلاثي</label><input id="nameInput"></div>
+      <div class="row"><label>رقم الحيازة</label><input id="possessionInput"></div>
+      <div class="row"><label>المنطقة</label><input id="regionInput"></div>
+      <div class="row"><label>الرقم المدني</label><input id="civilInput"></div>
+      <div class="row"><label>رقم جديد</label><input id="newPhoneInput" placeholder="اتركه فارغاً إن لم تغيره"></div>
+    </div>
+
+    <!-- بطاقة الحيوانات -->
+    <div class="card">
+      <h3>عدد الحيوانات</h3>
+      <div class="animals-grid">
+        <div class="animal-item"><label>ماعز</label><input type="number" id="animal_goat"></div>
+        <div class="animal-item"><label>أغنام</label><input type="number" id="animal_sheep"></div>
+        <div class="animal-item"><label>أبقار</label><input type="number" id="animal_cow"></div>
+        <div class="animal-item"><label>جمال</label><input type="number" id="animal_camel"></div>
+        <div class="animal-item"><label>خيول</label><input type="number" id="animal_horse"></div>
+        <div class="animal-item"><label>قطط</label><input type="number" id="animal_cat"></div>
+        <div class="animal-item"><label>كلاب</label><input type="number" id="animal_dog"></div>
+        <div class="animal-item"><label>دواجن</label><input type="number" id="animal_poultry"></div>
+      </div>
+      <textarea id="notes" placeholder="ملاحظات إضافية..."></textarea>
+    </div>
+
+    <!-- بطاقة مدخل البيانات -->
+    <div class="card">
+      <h3>مدخل البيانات</h3>
+      <input list="dataEntryList" id="dataEntryInput" placeholder="اختر مدخل البيانات">
+      <datalist id="dataEntryList"></datalist>
+
+      <h3>تاريخ إنتهاء الحيازة</h3>
+      <input type="date" id="financialDate" dir="ltr">
+
+      <h3>مدخل البيانات (التحديث)</h3>
+      <input list="dataUpdaterList" id="dataUpdaterInput" placeholder="اختر مدخل البيانات للتحديث">
+      <datalist id="dataUpdaterList"></datalist>
+    </div>
+
+    <!-- بطاقة البحث -->
+    <div class="card merged-empty-card">
+      <h3>البحث في بيانات المربين</h3>
+      <div style="display:flex; gap:8px; justify-content:center; margin:12px 0;">
+        <input type="text" id="globalSearchInput" placeholder="اكتب للبحث..." style="width:250px; padding:5px;">
+      </div>
+      <div id="searchResultsContainer" style="display:none;">
+        <table id="searchResultsTable">
+          <thead id="searchResultsHeader"></thead>
+          <tbody id="searchResultsBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- أزرار التحكم -->
+    <div class="card full-width">
+      <div class="btns">
+        <button class="save"   id="saveBtn">حفظ</button>
+        <button class="update" id="updateBtn">تحديث</button>
+        <button class="clear"  id="clearBtn">مسح</button>
+        <button class="delete" id="deleteBtn">حذف البيانات</button>
+        <button class="close"  onclick="window.close()">إغلاق</button>
+      </div>
+    </div>
+
+    <input type="hidden" id="private">
+  </div>
+</div>
+
+<script>
+// ===================================================
+// إعداد رابط الـ API (يُحفظ في localStorage)
+// ===================================================
+let API_URL = localStorage.getItem("breeders_api_url") || "";
+
+if (!API_URL) {
+  document.getElementById("setupOverlay").style.display = "flex";
+}
+
+function saveApiUrl() {
+  const url = document.getElementById("apiUrlInput").value.trim();
+  if (!url) {
+    alert("الرجاء إدخال الرابط");
+    return;
+  }
+  localStorage.setItem("breeders_api_url", url);
+  API_URL = url;
+  document.getElementById("setupOverlay").style.display = "none";
+  init();
+}
+
+function changeApiUrl() {
+  document.getElementById("apiUrlInput").value = API_URL;
+  document.getElementById("setupOverlay").style.display = "flex";
+}
+
+// ===================================================
+// دالة استدعاء الـ API
+// ===================================================
+async function callApi(action, payload = {}) {
+  if (!API_URL) throw new Error("رابط الخدمة غير مُعدّ");
+
+  const body = JSON.stringify(Object.assign({ action }, payload));
+
+  // نستخدم text/plain لتجنّب preflight CORS مع Apps Script
+  const response = await fetch(API_URL, {
+    method: "POST",
+    mode: "cors",
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body: body,
+    redirect: "follow",
+  });
+
+  if (!response.ok) throw new Error("HTTP " + response.status);
+  return await response.json();
+}
+
+// ===================================================
+// دوال الواجهة المساعدة
+// ===================================================
+function showMessage(message, isError, persistent, fontSize) {
+  const existing = document.querySelector(".toast");
+  if (existing) existing.remove();
+
+  const toast = document.createElement("div");
+  toast.className = "toast " + (isError ? "error" : "success");
+  toast.textContent = message;
+  toast.style.fontSize = (fontSize || 16) + "px";
+  document.body.appendChild(toast);
+
+  setTimeout(() => toast.classList.add("show"), 10);
+
+  if (!persistent) {
+    setTimeout(() => {
+      toast.classList.remove("show");
+      setTimeout(() => toast.remove(), 300);
+    }, 4000);
+  }
+}
+
+function showConfirm(message, onConfirm) {
+  const existing = document.querySelector(".custom-modal");
+  if (existing) existing.remove();
+
+  const modal = document.createElement("div");
+  modal.className = "custom-modal";
+  modal.innerHTML =
+    '<div class="modal-box">' +
+      '<h3>⚠️ تأكيد العملية</h3>' +
+      '<p>' + message + '</p>' +
+      '<div class="modal-buttons">' +
+        '<button class="confirm-btn">✔ نعم، تأكيد</button>' +
+        '<button class="cancel-btn">✖ إلغاء</button>' +
+      '</div>' +
+    '</div>';
+  document.body.appendChild(modal);
+
+  modal.addEventListener("click", e => { if (e.target === modal) modal.remove(); });
+  modal.querySelector(".confirm-btn").addEventListener("click", () => {
+    modal.remove();
+    onConfirm();
+  });
+  modal.querySelector(".cancel-btn").addEventListener("click", () => modal.remove());
+}
+
+function safeSetValue(id, value) {
+  const el = document.getElementById(id);
+  if (el) el.value = value || "";
+}
+
+function getValue(id) {
+  const el = document.getElementById(id);
+  return el ? el.value.trim() : "";
+}
+
+// ===================================================
+// تعبئة/تفريغ النموذج
+// ===================================================
+function fillFormWithData(data) {
+  try {
+    safeSetValue("caseNumber", data.phone);
+    safeSetValue("private", data.phone);
+    safeSetValue("nameInput", data.name);
+    safeSetValue("possessionInput", data.possession);
+    safeSetValue("regionInput", data.region);
+    safeSetValue("civilInput", data.civil);
+    safeSetValue("dataUpdaterInput", data.dataUpdater);
+    safeSetValue("notes", data.notes);
+    safeSetValue("dataEntryInput", data.dataEntry);
+    safeSetValue("financialDate", data.financialDate);
+    if (data.animals) {
+      safeSetValue("animal_goat",    data.animals.goat);
+      safeSetValue("animal_sheep",   data.animals.sheep);
+      safeSetValue("animal_cow",     data.animals.cow);
+      safeSetValue("animal_camel",   data.animals.camel);
+      safeSetValue("animal_poultry", data.animals.poultry);
+    }
+    showMessage("تم تحميل بيانات المربي بنجاح", false);
+  } catch (err) {
+    showMessage("خطأ في تعبئة البيانات: " + err.message, true);
+  }
+}
+
+function clearForm() {
+  const ids = [
+    "caseNumber","nameInput","possessionInput","regionInput","civilInput",
+    "newPhoneInput","notes","dataEntryInput","dataUpdaterInput","financialDate",
+    "phoneInput","private","globalSearchInput",
+    "animal_goat","animal_sheep","animal_cow","animal_camel",
+    "animal_horse","animal_cat","animal_dog","animal_poultry"
+  ];
+  ids.forEach(id => { const el = document.getElementById(id); if (el) el.value = ""; });
+
+  const container = document.getElementById("searchResultsContainer");
+  if (container) container.style.display = "none";
+  document.getElementById("searchResultsBody").innerHTML = "";
+  document.getElementById("searchResultsHeader").innerHTML = "";
+}
+
+// ===================================================
+// التحقق من البيانات
+// ===================================================
+function validateSaveData() {
+  const checks = [
+    { id: "caseNumber",     msg: "⚠️ رقم الهاتف مطلوب" },
+    { id: "nameInput",      msg: "⚠️ الاسم الثلاثي مطلوب" },
+    { id: "regionInput",    msg: "⚠️ المنطقة مطلوبة" },
+    { id: "dataEntryInput", msg: "⚠️ مدخل البيانات مطلوب" },
+  ];
+  for (const c of checks) {
+    if (getValue(c.id) === "") {
+      showMessage(c.msg, true);
+      document.getElementById(c.id).focus();
+      return false;
+    }
+  }
+  if (getValue("newPhoneInput") !== "") {
+    showMessage("⚠️ حقل الرقم الجديد يجب أن يكون فارغاً عند الحفظ", true);
+    return false;
+  }
+  if (getValue("private") !== "") {
+    showMessage("⚠️ انت في وضع تحديث البيانات قم بالتحديث بدل الحفظ", true);
+    return false;
+  }
+  return true;
+}
+
+function validateUpdateData() {
+  const checks = [
+    { id: "caseNumber",       msg: "⚠️ رقم الهاتف مطلوب" },
+    { id: "nameInput",        msg: "⚠️ الاسم الثلاثي مطلوب" },
+    { id: "regionInput",      msg: "⚠️ المنطقة مطلوبة" },
+    { id: "dataUpdaterInput", msg: "⚠️ مدخل البيانات (التحديث) مطلوب" },
+  ];
+  for (const c of checks) {
+    if (getValue(c.id) === "") {
+      showMessage(c.msg, true);
+      document.getElementById(c.id).focus();
+      return false;
+    }
+  }
+  return true;
+}
+
+// ===================================================
+// تحديث القوائم المنسدلة
+// ===================================================
+async function refreshDropdowns() {
+  try {
+    const [phonesRes, entriesRes] = await Promise.all([
+      callApi("getPhoneNumbers"),
+      callApi("getDataEntryOptions"),
+    ]);
+
+    if (phonesRes.success) {
+      const dl = document.getElementById("phoneList");
+      dl.innerHTML = "";
+      phonesRes.data.sort().forEach(p => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        dl.appendChild(opt);
+      });
+    }
+
+    if (entriesRes.success) {
+      const dl1 = document.getElementById("dataEntryList");
+      const dl2 = document.getElementById("dataUpdaterList");
+      dl1.innerHTML = "";
+      dl2.innerHTML = "";
+      entriesRes.data.sort().forEach(e => {
+        const o1 = document.createElement("option"); o1.value = e; dl1.appendChild(o1);
+        const o2 = document.createElement("option"); o2.value = e; dl2.appendChild(o2);
+      });
+    }
+  } catch (err) {
+    showMessage("خطأ في تحميل القوائم: " + err.message, true);
+  }
+}
+
+// ===================================================
+// عمليات CRUD
+// ===================================================
+async function saveData() {
+  if (!validateSaveData()) return;
+
+  const data = {
+    phone:      getValue("caseNumber"),
+    name:       getValue("nameInput"),
+    possession: getValue("possessionInput"),
+    region:     getValue("regionInput"),
+    civil:      getValue("civilInput"),
+    notes:      getValue("notes"),
+    animals: {
+      camel:   getValue("animal_camel"),
+      goat:    getValue("animal_goat"),
+      sheep:   getValue("animal_sheep"),
+      cow:     getValue("animal_cow"),
+      poultry: getValue("animal_poultry"),
+    },
+    financialDate: getValue("financialDate"),
+    dataEntry:     getValue("dataEntryInput"),
+  };
+
+  const btn = document.getElementById("saveBtn");
+  const original = btn.textContent;
+  btn.textContent = "جاري الحفظ...";
+  btn.disabled = true;
+
+  try {
+    const res = await callApi("saveData", { data });
+    if (res.success) {
+      showMessage("تم حفظ البيانات بنجاح ✓", false);
+      clearForm();
+      refreshDropdowns();
+    } else {
+      showMessage("خطأ: " + res.message, true);
+    }
+  } catch (err) {
+    showMessage("خطأ في الاتصال: " + err.message, true);
+  } finally {
+    btn.textContent = original;
+    btn.disabled = false;
+  }
+}
+
+async function updateData() {
+  if (!validateUpdateData()) return;
+
+  const phone = getValue("phoneInput") || getValue("caseNumber");
+  if (!phone) {
+    showMessage("الرجاء اختيار رقم الهاتف أولاً", true);
+    return;
+  }
+
+  const newPhone = getValue("newPhoneInput");
+  const data = {
+    phone:       phone,
+    newPhone:    newPhone || phone,
+    name:        getValue("nameInput"),
+    possession:  getValue("possessionInput"),
+    region:      getValue("regionInput"),
+    civil:       getValue("civilInput"),
+    notes:       getValue("notes"),
+    dataEntry:   getValue("dataEntryInput"),
+    dataUpdater: getValue("dataUpdaterInput"),
+    animals: {
+      camel:   getValue("animal_camel"),
+      goat:    getValue("animal_goat"),
+      sheep:   getValue("animal_sheep"),
+      cow:     getValue("animal_cow"),
+      poultry: getValue("animal_poultry"),
+    },
+    financialDate: getValue("financialDate"),
+  };
+
+  showConfirm("هل أنت متأكد من تحديث بيانات الرقم: " + phone + "؟", async () => {
+    const btn = document.getElementById("updateBtn");
+    const original = btn.textContent;
+    btn.textContent = "جاري التحديث...";
+    btn.disabled = true;
+    try {
+      const res = await callApi("updateData", { data });
+      if (res.success) {
+        showMessage("تم تحديث البيانات بنجاح ✓", false);
+        clearForm();
+        refreshDropdowns();
+      } else {
+        showMessage("خطأ: " + res.message, true);
+      }
+    } catch (err) {
+      showMessage("خطأ في الاتصال: " + err.message, true);
+    } finally {
+      btn.textContent = original;
+      btn.disabled = false;
+    }
+  });
+}
+
+async function deleteData() {
+  const phone = getValue("phoneInput") || getValue("caseNumber");
+  if (!phone) {
+    showMessage("الرجاء اختيار رقم الهاتف أولاً", true);
+    return;
+  }
+
+  showConfirm("هل أنت متأكد من حذف بيانات الرقم: " + phone + "؟", async () => {
+    const btn = document.getElementById("deleteBtn");
+    const original = btn.textContent;
+    btn.textContent = "جاري الحذف...";
+    btn.disabled = true;
+    try {
+      const res = await callApi("deleteData", { phone });
+      if (res.success) {
+        showMessage("تم حذف البيانات بنجاح ✓", false);
+        clearForm();
+        refreshDropdowns();
+      } else {
+        showMessage("خطأ: " + res.message, true);
+      }
+    } catch (err) {
+      showMessage("خطأ في الاتصال: " + err.message, true);
+    } finally {
+      btn.textContent = original;
+      btn.disabled = false;
+    }
+  });
+}
+
+// ===================================================
+// البحث
+// ===================================================
+async function performGlobalSearch() {
+  const searchText = getValue("globalSearchInput");
+  if (!searchText) {
+    showMessage("الرجاء إدخال نص للبحث", true);
+    return;
+  }
+
+  const container = document.getElementById("searchResultsContainer");
+  const tbody = document.getElementById("searchResultsBody");
+  const thead = document.getElementById("searchResultsHeader");
+  container.style.display = "block";
+  tbody.innerHTML = "<tr><td colspan='100' style='text-align:center;'>جاري البحث...</td></tr>";
+
+  try {
+    const res = await callApi("searchBreeders", { searchText });
+    if (!res.success || !res.data || res.data.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='100' style='text-align:center;'>لا توجد نتائج</td></tr>";
+      return;
+    }
+
+    const [headers, ...rows] = res.data;
+    if (rows.length === 0) {
+      tbody.innerHTML = "<tr><td colspan='100' style='text-align:center;'>لا توجد نتائج</td></tr>";
+      thead.innerHTML = "";
+      return;
+    }
+
+    thead.innerHTML = "<tr>" + headers.map(h => "<th>" + (h || "&nbsp;") + "</th>").join("") + "</tr>";
+    tbody.innerHTML = rows.map(row =>
+      "<tr>" + row.map(c => "<td>" + (c || "&nbsp;") + "</td>").join("") + "</tr>"
+    ).join("");
+
+    // ربط النقر لجلب البيانات
+    Array.from(tbody.querySelectorAll("tr")).forEach(tr => {
+      tr.addEventListener("click", async () => {
+        const firstCell = tr.cells[0].textContent.trim();
+        if (!firstCell) return;
+        document.getElementById("phoneInput").value = firstCell;
+        container.style.display = "none";
+        await loadCaseData(firstCell);
+      });
+    });
+  } catch (err) {
+    tbody.innerHTML = "<tr><td colspan='100' style='text-align:center;'>خطأ: " + err.message + "</td></tr>";
+  }
+}
+
+async function loadCaseData(phone) {
+  showMessage("جاري جلب البيانات...", false);
+  try {
+    const res = await callApi("searchCaseData", { phone });
+    if (res.success) fillFormWithData(res);
+    else showMessage(res.message, true);
+  } catch (err) {
+    showMessage("خطأ في الاتصال: " + err.message, true);
+  }
+}
+
+// ===================================================
+// أحداث
+// ===================================================
+function bindEvents() {
+  document.getElementById("saveBtn").addEventListener("click", saveData);
+  document.getElementById("updateBtn").addEventListener("click", updateData);
+  document.getElementById("clearBtn").addEventListener("click", clearForm);
+  document.getElementById("deleteBtn").addEventListener("click", deleteData);
+
+  // البحث
+  document.getElementById("globalSearchInput").addEventListener("keypress", e => {
+    if (e.key === "Enter") performGlobalSearch();
+  });
+
+  let searchTimer;
+  document.getElementById("globalSearchInput").addEventListener("input", function () {
+    clearTimeout(searchTimer);
+    if (!this.value.trim()) {
+      document.getElementById("searchResultsContainer").style.display = "none";
+      return;
+    }
+    searchTimer = setTimeout(performGlobalSearch, 400);
+  });
+
+  // عند اختيار رقم من القائمة
+  document.getElementById("phoneInput").addEventListener("change", async function () {
+    const phone = this.value.trim();
+    if (!phone) return;
+    document.getElementById("private").value = phone;
+    await loadCaseData(phone);
+  });
+}
+
+// ===================================================
+// تهيئة
+// ===================================================
+function init() {
+  bindEvents();
+  if (API_URL) refreshDropdowns();
+}
+
+if (API_URL) init();
+else bindEvents();
+</script>
+</body>
+</html>
