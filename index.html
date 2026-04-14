@@ -534,7 +534,7 @@ async function refreshDropdowns() {
   try {
     const [phonesRes, entriesRes] = await Promise.all([
       callApi("getPhoneNumbersbrd"),
-      callApi("getDataEntryOptions"),
+      callApi("getDataEntryOptionsbrd"),
     ]);
 
     if (phonesRes.success) {
@@ -592,7 +592,7 @@ async function saveData() {
   btn.disabled = true;
 
   try {
-    const res = await callApi("saveData", { data });
+    const res = await callApi("saveDatabrd", { data });
     if (res.success) {
       showMessage("تم حفظ البيانات بنجاح ✓", false);
       clearForm();
@@ -644,7 +644,7 @@ async function updateData() {
     btn.textContent = "جاري التحديث...";
     btn.disabled = true;
     try {
-      const res = await callApi("updateData", { data });
+      const res = await callApi("updateDatabrd", { data });
       if (res.success) {
         showMessage("تم تحديث البيانات بنجاح ✓", false);
         clearForm();
@@ -674,7 +674,7 @@ async function deleteData() {
     btn.textContent = "جاري الحذف...";
     btn.disabled = true;
     try {
-      const res = await callApi("deleteData", { phone });
+      const res = await callApi("deleteDatabrd", { phone });
       if (res.success) {
         showMessage("تم حذف البيانات بنجاح ✓", false);
         clearForm();
@@ -708,7 +708,7 @@ async function performGlobalSearch() {
   tbody.innerHTML = "<tr><td colspan='100' style='text-align:center;'>جاري البحث...</td></tr>";
 
   try {
-    const res = await callApi("searchBreeders", { searchText });
+    const res = await callApi("searchBreedersbrd", { searchText });
     if (!res.success || !res.data || res.data.length === 0) {
       tbody.innerHTML = "<tr><td colspan='100' style='text-align:center;'>لا توجد نتائج</td></tr>";
       return;
@@ -744,7 +744,7 @@ async function performGlobalSearch() {
 async function loadCaseData(phone) {
   showMessage("جاري جلب البيانات...", false);
   try {
-    const res = await callApi("searchCaseData", { phone });
+    const res = await callApi("searchCaseDatabrd", { phone });
     if (res.success) fillFormWithData(res);
     else showMessage(res.message, true);
   } catch (err) {
