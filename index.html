@@ -533,7 +533,7 @@ function validateUpdateData() {
 async function refreshDropdowns() {
   try {
     const [phonesRes, entriesRes] = await Promise.all([
-      callApi("getPhoneNumbers"),
+      callApi("getPhoneNumbersbrd"),
       callApi("getDataEntryOptions"),
     ]);
 
