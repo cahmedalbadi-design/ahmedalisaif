@@ -270,8 +270,11 @@ function fail(err){
   statusEl.hidden=false; statusEl.className="demo err";
   statusEl.textContent="تعذّر تحميل البيانات من الجدول: "+(err&&err.message||err);
 }
-google.script.run.withSuccessHandler(load).withFailureHandler(fail).getData();
-
+if (typeof google === "undefined" || !google.script) {
+  fail("https://script.google.com/macros/s/AKfycbyVj4QEl-M1rvRxr0z5u74HStlYZ6phyqHaep0AOrBU3byt68EjFbVai4Z1Hd8ka0bm/exec");
+} else {
+  google.script.run.withSuccessHandler(load).withFailureHandler(fail).getData();
+}
 /* ===================== نافذة الإدخال ===================== */
 (function(){
   const $=id=>document.getElementById(id);
