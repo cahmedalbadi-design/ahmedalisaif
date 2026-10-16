@@ -261,6 +261,17 @@ function render(){
   document.getElementById("cmp").innerHTML=t+"</tbody>";
 }
 /* ===================== التحميل من الجدول ===================== */
+/* ===== رابط نشر Apps Script (المنتهي بـ /exec) ===== */
+const API_URL = "https://script.google.com/macros/s/AKfycbyVj4QEl-M1rvRxr0z5u74HStlYZ6phyqHaep0AOrBU3byt68EjFbVai4Z1Hd8ka0bm/exec";
+
+async function api(action, body){
+  const r = action==="data"
+    ? await fetch(API_URL+"?action=data")
+    : await fetch(API_URL,{method:"POST",headers:{"Content-Type":"text/plain;charset=utf-8"},body:JSON.stringify(Object.assign({action},body))});
+  let j; try{ j=await r.json(); }catch(_){ throw new Error("استجابة غير متوقعة من الخادم. تأكد من إعدادات النشر."); }
+  if(!j.ok) throw new Error(j.error||"خطأ غير معروف");
+  return j.data;
+}
 const statusEl=document.getElementById("status");
 function load(d){
   CLINICS=d.clinics; SEASON=d.season;
@@ -269,12 +280,9 @@ function load(d){
 function fail(err){
   statusEl.hidden=false; statusEl.className="demo err";
   statusEl.textContent="تعذّر تحميل البيانات من الجدول: "+(typeof err==="string"?err:(err&&err.message)||String(err));
-  console.error(err);}
-if (typeof google === "undefined" || !google.script) {
-  fail("https://script.google.com/macros/s/AKfycbyVj4QEl-M1rvRxr0z5u74HStlYZ6phyqHaep0AOrBU3byt68EjFbVai4Z1Hd8ka0bm/exec");
-} else {
-  google.script.run.withSuccessHandler(load).withFailureHandler(fail).getData();
 }
+api("data").then(load).catch(fail);
+
 /* ===================== نافذة الإدخال ===================== */
 (function(){
   const $=id=>document.getElementById(id);
@@ -284,7 +292,7 @@ if (typeof google === "undefined" || !google.script) {
   let current=null, pin="";   // تُحفظ في الذاكرة فقط طوال فتح النافذة
 
   sel.innerHTML='<option value="">اختر الولاية</option>'+Object.entries(NAMES).map(([k,n])=>`<option value="${k}">${n}</option>`).join("");
-  const call=(fn,...args)=>new Promise((ok,no)=>google.script.run.withSuccessHandler(ok).withFailureHandler(no)[fn](...args));
+  const call=(fn,k,p,d)=>fn==="verifyPin"?api("verify",{key:k,pin:p}):api("save",{key:k,pin:p,data:d});
   const errText=e=>String(e&&e.message||e).replace(/^Error:\s*/,"");
 
   function reset(){current=null;pin="";login.hidden=false;form.hidden=true;login.reset();form.reset();$("loginMsg").textContent="";$("formMsg").textContent="";}
