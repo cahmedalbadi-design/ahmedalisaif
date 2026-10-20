@@ -90,7 +90,7 @@ dialog::backdrop{background:rgba(8,25,22,.55)}
 .dlg input:focus,.dlg select:focus{outline:2px solid var(--brand);outline-offset:1px}
 .dlg fieldset{border:1px solid var(--line);border-radius:8px;padding:8px 12px 12px;margin:14px 0 0}
 .dlg legend{font-family:"Noto Kufi Arabic",sans-serif;font-weight:600;padding:0 6px}
-.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:end}
+.grid3{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:8px;align-items:end}
 .grid3 .h{font-size:.82rem;color:var(--muted)}
 .grid3 .vn{font-size:.9rem;align-self:center}
 .dlg .row{display:flex;gap:8px;justify-content:flex-start;margin-top:18px}
@@ -99,7 +99,7 @@ dialog::backdrop{background:rgba(8,25,22,.55)}
 .src{font-size:.8rem;color:var(--muted)}
 .na{background:var(--bg);color:var(--muted)}
 .demo.err{background:var(--low-bg);color:var(--low)}
-@media (max-width:480px){.grid3{grid-template-columns:1fr 1fr}.grid3 .h:first-child,.grid3 .vn{grid-column:1/-1}}
+@media (max-width:480px){.grid3{grid-template-columns:1fr 1fr 1fr}.grid3 .h:first-child,.grid3 .vn{grid-column:1/-1}}
 </style>
 </head>
 <body>
@@ -127,10 +127,10 @@ dialog::backdrop{background:rgba(8,25,22,.55)}
       <fieldset>
         <legend>كفاءة استخدام اللقاحات (بالجرعات)</legend>
         <div class="grid3">
-          <span class="h">اللقاح</span><span class="h">الجرعات المستلمة</span><span class="h">الجرعات المتبقية</span>
-          <span class="vn">التسمم المعوي</span><input type="number" min="0" step="1" name="entero_r" aria-label="التسمم المعوي، المستلمة"><input type="number" min="0" step="1" name="entero_m" aria-label="التسمم المعوي، المتبقية">
-          <span class="vn">الحمى القلاعية</span><input type="number" min="0" step="1" name="fmd_r" aria-label="الحمى القلاعية، المستلمة"><input type="number" min="0" step="1" name="fmd_m" aria-label="الحمى القلاعية، المتبقية">
-          <span class="vn">الجدري والطاعون</span><input type="number" min="0" step="1" name="pox_r" aria-label="الجدري والطاعون، المستلمة"><input type="number" min="0" step="1" name="pox_m" aria-label="الجدري والطاعون، المتبقية">
+          <span class="h">اللقاح</span><span class="h">الجرعات المستلمة</span><span class="h">الجرعات المستخدمة</span><span class="h">الجرعات المتبقية</span>
+          <span class="vn">التسمم المعوي</span><input type="number" min="0" step="1" name="entero_r" aria-label="التسمم المعوي، المستلمة"><input type="number" min="0" step="1" name="entero_u" aria-label="التسمم المعوي، المستخدمة"><input type="number" min="0" step="1" name="entero_m" aria-label="التسمم المعوي، المتبقية">
+          <span class="vn">الحمى القلاعية</span><input type="number" min="0" step="1" name="fmd_r" aria-label="الحمى القلاعية، المستلمة"><input type="number" min="0" step="1" name="fmd_u" aria-label="الحمى القلاعية، المستخدمة"><input type="number" min="0" step="1" name="fmd_m" aria-label="الحمى القلاعية، المتبقية">
+          <span class="vn">الجدري والطاعون</span><input type="number" min="0" step="1" name="pox_r" aria-label="الجدري والطاعون، المستلمة"><input type="number" min="0" step="1" name="pox_u" aria-label="الجدري والطاعون، المستخدمة"><input type="number" min="0" step="1" name="pox_m" aria-label="الجدري والطاعون، المتبقية">
         </div>
       </fieldset>
       <fieldset>
@@ -181,7 +181,7 @@ const pct=(a,b)=>miss(a,b)||!b?null:a/b*100, growth=(a,b)=>miss(a,b)||!b?null:(a
 const IND = [
   {id:"cov",  axis:1, group:"نسبة التغطية", name:"نسبة تحصين الحيوانات", w:40, type:"pct", lo:65, hi:70, unit:"%", calc:c=>pct(c.vaccinated,c.totalAnimals)},
   {id:"eff",  axis:1, group:"كفاءة استخدام اللقاحات", name:"الكفاءة الكلية (تسمم معوي، حمى قلاعية، جدري وطاعون)", w:7.5, type:"pct", lo:90, hi:94, unit:"%",
-     calc:c=>{const v=Object.values(c.vac).filter(Boolean).map(([r,m])=>pct(r-m,r)).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}},
+     calc:c=>{const v=Object.values(c.vac).filter(Boolean).map(([r,m,u])=>u==null?null:pct(u+m,r)).filter(x=>x!=null);return v.length?v.reduce((a,b)=>a+b,0)/v.length:null}},
   {id:"vvis", axis:1, group:"المستفيدون من الخدمة", name:"زيارات التحصين لكل مستفيد", w:10, type:"target", target:1.3, lo:1.25, hi:1.3, unit:"", calc:c=>miss(c.vVisits,c.vBenef)||!c.vBenef?null:c.vVisits/c.vBenef},
   {id:"vgr",  axis:1, group:"المستفيدون من الخدمة", name:"النمو في أعداد المستفيدين", w:5, type:"target", target:5, lo:2, hi:5, unit:"%", calc:c=>growth(c.vBenef,c.vBenefPrev)},
   {id:"camp", axis:1, group:"معسكرات التحصين", name:"المعسكرات الميدانية الناجحة", w:10, type:"pct", lo:80, hi:90, unit:"%", calc:c=>pct(c.campsOk,c.campsTarget)},
@@ -221,7 +221,7 @@ let selected=0;
 function render(){
   if(!CLINICS.length) return;
   const R=CLINICS.map(evaluate);
-  const pending=CLINICS.filter(c=>c.campsTarget==null||!Object.values(c.vac).every(Boolean)).map(c=>c.name);
+const pending=CLINICS.filter(c=>c.campsTarget==null||!["entero","fmd","pox"].every(k=>c.vac[k]&&c.vac[k][2]!=null)).map(c=>c.name);
   document.getElementById("srcNote").textContent = `الموسم ${SEASON}` + (pending.length ? `. لم تُدخل بيانات اللقاحات أو المعسكرات بعد: ${pending.join("، ")}` : "");
     const order=R.map((r,i)=>i).sort((a,b)=>R[b].total-R[a].total);
   const sc=Math.max(100,...R.map(r=>r.total));   // مقياس الشريط يتسع لأعلى عيادة
@@ -249,7 +249,7 @@ function render(){
         <td class="n">${x.w}%</td><td class="n">${f(x.pts,2)}</td>
         <td><div class="mini"><i style="width:${x.pts/x.w*100}%"></i></div></td></tr>`;
       if(x.id==="eff"){const nm={entero:"التسمم المعوي",fmd:"الحمى القلاعية",pox:"الجدري والطاعون"};
-        Object.entries(r.c.vac).forEach(([k,p])=>{const e=p?pct(p[0]-p[1],p[0]):null;
+        Object.entries(r.c.vac).forEach(([k,p])=>{const e=p&&p[2]!=null?pct(p[2]+p[1],p[0]):null;
           h+=`<tr><td style="padding-inline-start:28px"><small>${nm[k]} (وزن 2.5%)</small></td><td class="n">${f(e)}%</td><td>${badge(level(e,90,94))}</td><td></td><td></td><td></td></tr>`;});}
     });
   });
@@ -316,7 +316,7 @@ api("data").then(load).catch(fail);
     $("formTitle").textContent="بيانات عيادة "+NAMES[k];
     // تعبئة النموذج بالقيم الموجودة حالياً في الجدول
     const c=CLINICS.find(x=>x.key===k)||{vac:{}};
-    ["entero","fmd","pox"].forEach(v=>{const p=c.vac[v];form[v+"_r"].value=p?p[0]:"";form[v+"_m"].value=p?p[1]:"";});
+    ["entero","fmd","pox"].forEach(v=>{const p=c.vac[v];form[v+"_r"].value=p?p[0]:"";form[v+"_m"].value=p?p[1]:"";form[v+"_u"].value=p&&p[2]!=null?p[2]:"";});
     ["campsTarget","campsOk","campsGuest"].forEach(n=>form[n].value=c[n]==null?"":c[n]);
     form.querySelector("input").focus();
   };
@@ -327,10 +327,10 @@ api("data").then(load).catch(fail);
     const n=name=>{const v=form[name].value.trim();return v===""||!/^\d+$/.test(v)?NaN:+v;};
     const vac={};
     for(const v of ["entero","fmd","pox"]){
-      const r=n(v+"_r"), m=n(v+"_m");
-      if(isNaN(r)||isNaN(m)){msg.textContent=`أدخل أعداداً صحيحة لجرعات ${VN[v]}.`;form[v+"_r"].focus();return;}
-      if(m>r){msg.textContent=`الجرعات المتبقية من ${VN[v]} أكبر من المستلمة.`;form[v+"_m"].focus();return;}
-      vac[v]=[r,m];
+      const r=n(v+"_r"), m=n(v+"_m"), u=n(v+"_u");
+      if(isNaN(r)||isNaN(m)||isNaN(u)){msg.textContent=`أدخل أعداداً صحيحة لجرعات ${VN[v]}.`;form[v+"_r"].focus();return;}
+      if(u+m>r){msg.textContent=`مجموع الجرعات المستخدمة والمتبقية من ${VN[v]} أكبر من المستلمة.`;form[v+"_u"].focus();return;}
+      vac[v]=[r,m,u];
     }
     const t=n("campsTarget"), ok=n("campsOk"), g=n("campsGuest");
     if([t,ok,g].some(isNaN)){msg.textContent="أدخل أعداداً صحيحة لبيانات المعسكرات.";return;}
