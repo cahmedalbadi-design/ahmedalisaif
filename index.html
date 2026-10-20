@@ -187,7 +187,7 @@ const IND = [
   {id:"camp", axis:1, group:"معسكرات التحصين", name:"المعسكرات الميدانية الناجحة", w:10, type:"pct", lo:80, hi:90, unit:"%", calc:c=>pct(c.campsOk,c.campsTarget)},
   {id:"guest",axis:1, group:"معسكرات التحصين", name:"المعسكرات بالاستعانة بفريق زائر", w:2.5, type:"target", target:30, lo:20, hi:30, unit:"%", calc:c=>pct(c.campsGuest,c.campsOk)},
   {id:"tgr",  axis:2, group:"المستفيدون من الخدمة العلاجية", name:"النمو في أعداد المستفيدين", w:7.5, type:"target", target:2, lo:1, hi:2, unit:"%", calc:c=>growth(c.tBenef,c.tBenefPrev)},
-  {id:"trate",axis:2, group:"المستفيدون من الخدمة العلاجية", name:"معدل الحالات العلاجية", w:7.5, type:"target", target:2, lo:1.5, hi:2, unit:"", calc:c=>miss(c.tCases,c.tBenef)||!c.tBenef?null:(c.tCases-c.tBenef)/c.tBenef},
+  {id:"trate",axis:2, group:"المستفيدون من الخدمة العلاجية", name:"معدل الحالات العلاجية", w:7.5, type:"target", target:2, lo:1.5, hi:2, unit:"", calc:c=>miss(c.tCases,c.tBenef)||!c.tBenef?null:c.tCases/c.tBenef},
   {id:"cgr",  axis:2, group:"نمو الخدمات العلاجية", name:"نمو الحالات العلاجية", w:10, type:"target", target:5, lo:2, hi:5, unit:"%", calc:c=>growth(c.tCases,c.tCasesPrev)}
 ];
 const AXIS = {1:{name:"تحصين الثروة الحيوانية",w:75},2:{name:"الخدمات العلاجية",w:25}};
