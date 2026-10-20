@@ -45,7 +45,7 @@ h2{font-size:1.15rem;margin:28px 0 12px}
 .track i{display:block;height:100%}
 .track .a1{background:var(--brand)}
 .track .a2{background:var(--brand);opacity:.45}
-.track::after{content:"";position:absolute;top:0;bottom:0;right:70%;border-right:2px dashed var(--ink);opacity:.5}
+.track::after{content:"";position:absolute;top:0;bottom:0;right:var(--mark,70%);;border-right:2px dashed var(--ink);opacity:.5}
 .rank .tot{font-weight:600;font-variant-numeric:tabular-nums;text-align:left}
 .legend{display:flex;flex-wrap:wrap;gap:16px;color:var(--muted);font-size:.85rem;margin-top:10px}
 .legend span::before{content:"";display:inline-block;width:12px;height:12px;border-radius:2px;background:var(--brand);margin-inline-end:6px;vertical-align:-1px}
@@ -162,8 +162,8 @@ dialog::backdrop{background:rgba(8,25,22,.55)}
   <h2>مقارنة المؤشرات بين العيادات</h2>
   <div class="panel scroll"><table id="cmp"></table></div>
   <ul class="notes">
-    <li>مؤشرات النسب (التغطية، كفاءة اللقاحات، المعسكرات) تُضرب نسبتها في وزنها.</li>
-    <li>مؤشرات النمو والمعدلات تأخذ وزنها كاملاً عند بلوغ المستهدف، وبالتناسب دونه، وصفراً عند الانكماش.</li>
+    <li>المؤشر في المستوى (متوقع) يُمنح 100% من وزنه.</li>
+    <li>المؤشر (المنخفض) يُحسب بالتناسب مع الحد الأدنى للمتوقع، و(المرتفع) بالتناسب مع الحد الأعلى بحد أقصى 200% من وزنه، وصفراً عند الانكماش.</li>
     <li>عند انكماش الخدمات العلاجية مع تغطية تحصين مرتفعة يُمنح مؤشرا النمو العلاجيان وزنهما كاملاً (17.5%).</li>
   </ul>
 </div>
@@ -197,13 +197,14 @@ const f=(n,d=1)=>n==null?"—":Number(n).toLocaleString("en",{minimumFractionDig
 
 function evaluate(c){
   const rows = IND.map(d=>{
-    const v=d.calc(c);
-    const ratio = v==null ? 0 : d.type==="pct" ? Math.min(Math.max(v,0),100)/100 : Math.min(Math.max(v,0)/d.target,1);
-    return {...d, v, pts:ratio*d.w, lvl:level(v,d.lo,d.hi), full:false};
+    const v=d.calc(c), lvl=level(v,d.lo,d.hi);
+    // متوقع = 100% ، منخفض = القيمة÷الحد الأدنى ، مرتفع = القيمة÷الحد الأعلى (بحد أقصى 200%)
+    const ratio = v==null||v<=0 ? 0 : lvl==="mid" ? 1 : lvl==="low" ? v/d.lo : Math.min(v/d.hi,2);
+    return {...d, v, pts:ratio*d.w, lvl, full:false};
   });
   const get=id=>rows.find(r=>r.id===id);
   // قاعدة الانكماش العلاجي مع تغطية تحصين مرتفعة
-  if(get("cgr").v!=null && get("cgr").v<0 && get("cov").lvl==="high"){ ["tgr","cgr"].forEach(id=>{const r=get(id); r.pts=r.w; r.full=true;}); }
+  if(get("cgr").v!=null && get("cgr").v<0 && get("cov").lvl==="high"){["tgr","cgr"].forEach(id=>{const r=get(id); if(r.pts<r.w){r.pts=r.w; r.full=true;}});}
   const ax={}; [1,2].forEach(a=>{const p=rows.filter(r=>r.axis===a).reduce((s,r)=>s+r.pts,0); ax[a]={pts:p,pct:p/AXIS[a].w*100};});
   const total=ax[1].pts+ax[2].pts;
   const covHigh=get("cov").lvl==="high", trHigh=ax[2].pct>=70;
@@ -222,11 +223,12 @@ function render(){
   const R=CLINICS.map(evaluate);
   const pending=CLINICS.filter(c=>c.campsTarget==null||!Object.values(c.vac).every(Boolean)).map(c=>c.name);
   document.getElementById("srcNote").textContent = `الموسم ${SEASON}` + (pending.length ? `. لم تُدخل بيانات اللقاحات أو المعسكرات بعد: ${pending.join("، ")}` : "");
-  const order=R.map((r,i)=>i).sort((a,b)=>R[b].total-R[a].total);
+    const order=R.map((r,i)=>i).sort((a,b)=>R[b].total-R[a].total);
+  const sc=Math.max(100,...R.map(r=>r.total));   // مقياس الشريط يتسع لأعلى عيادة
   document.getElementById("rank").innerHTML=order.map(i=>{const r=R[i];return `
     <button aria-pressed="${i===selected}" data-i="${i}">
       <span class="name">${r.c.name}</span>
-      <span class="track"><i class="a1" style="width:${r.ax[1].pts}%"></i><i class="a2" style="width:${r.ax[2].pts}%"></i></span>
+           <span class="track" style="--mark:${70/sc*100}%"><i class="a1" style="width:${r.ax[1].pts/sc*100}%"></i><i class="a2" style="width:${r.ax[2].pts/sc*100}%"></i></span>
       <span class="tot">${f(r.total)}%</span>
     </button>`}).join("");
   document.querySelectorAll("#rank button").forEach(b=>b.onclick=()=>{selected=+b.dataset.i;render();});
