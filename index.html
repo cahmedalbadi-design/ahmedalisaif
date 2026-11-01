@@ -95,6 +95,7 @@ dialog::backdrop{background:rgba(8,25,22,.55)}
 .grid3{display:grid;grid-template-columns:1.2fr 1fr 1fr 1fr;gap:8px;align-items:end}
 .grid3 .h{font-size:.82rem;color:var(--muted)}
 .grid3 .vn{font-size:.9rem;align-self:center}
+.grid3 .hint{grid-column:1/-1;font-size:.82rem;color:var(--mid);background:var(--mid-bg);border-radius:6px;padding:4px 10px;margin-top:-2px}
 .dlg .row{display:flex;gap:8px;justify-content:flex-start;margin-top:18px}
 .msg{min-height:1.5em;margin:8px 0 0;font-size:.9rem}
 .msg.err{color:var(--low)} .msg.ok{color:var(--high)}
@@ -133,7 +134,7 @@ dialog::backdrop{background:rgba(8,25,22,.55)}
         <div class="grid3">
           <span class="h">اللقاح</span><span class="h">الجرعات المستلمة</span><span class="h">الجرعات المستخدمة</span><span class="h">الجرعات المتبقية</span>
           <span class="vn">التسمم المعوي</span><input type="number" min="0" step="1" name="entero_r" aria-label="التسمم المعوي، المستلمة"><input type="number" min="0" step="1" name="entero_u" aria-label="التسمم المعوي، المستخدمة"><input type="number" min="0" step="1" name="entero_m" aria-label="التسمم المعوي، المتبقية">
-          <span class="vn">الحمى القلاعية</span><input type="number" min="0" step="1" name="fmd_r" aria-label="الحمى القلاعية، المستلمة"><input type="number" min="0" step="1" name="fmd_u" aria-label="الحمى القلاعية، المستخدمة"><input type="number" min="0" step="1" name="fmd_m" aria-label="الحمى القلاعية، المتبقية">
+          <span class="vn">الحمى القلاعية</span><input type="number" min="0" step="1" name="fmd_r" aria-label="الحمى القلاعية، المستلمة"><input type="number" min="0" step="1" name="fmd_u" aria-label="الحمى القلاعية، المستخدمة"><input type="number" min="0" step="1" name="fmd_m" aria-label="الحمى القلاعية، المتبقية"><span class="hint">جرعة الأبقار تُحسب ×2، والمتبقي يُحسب للماعز والضأن.</span>
           <span class="vn">الجدري والطاعون</span><input type="number" min="0" step="1" name="pox_r" aria-label="الجدري والطاعون، المستلمة"><input type="number" min="0" step="1" name="pox_u" aria-label="الجدري والطاعون، المستخدمة"><input type="number" min="0" step="1" name="pox_m" aria-label="الجدري والطاعون، المتبقية">
         </div>
       </fieldset>
