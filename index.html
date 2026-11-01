@@ -109,9 +109,11 @@ dialog::backdrop{background:rgba(8,25,22,.55)}
   <header>
     <h1>مؤشرات تقييم أداء العيادات البيطرية الحكومية</h1>
     <div><p>محافظة شمال الباطنة، موسم التحصين</p><p class="src" id="srcNote"></p></div>
-    <button class="btn" id="openEntry" type="button">إدخال بيانات اللقاحات ومعسكرات التحصين</button>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn ghost" id="refreshBtn" type="button">تحديث البيانات</button>
+      <button class="btn" id="openEntry" type="button">إدخال بيانات اللقاحات ومعسكرات التحصين</button>
+    </div>
   </header>
-
   <dialog id="entryDlg" aria-labelledby="dlgTitle">
     <!-- الخطوة 1: اختيار الولاية والرقم السري -->
     <form class="dlg" id="stepLogin" novalidate>
@@ -287,6 +289,12 @@ function fail(err){
 }
 api("data").then(load).catch(fail);
 
+/* زر تحديث البيانات من الجدول */
+document.getElementById("refreshBtn").onclick=async e=>{
+  const b=e.currentTarget; b.disabled=true; b.textContent="جارٍ التحديث…";
+  try{ load(await api("data")); }catch(err){ fail(err); }
+  finally{ b.disabled=false; b.textContent="تحديث البيانات"; }
+};
 /* ===================== نافذة الإدخال ===================== */
 (function(){
   const $=id=>document.getElementById(id);
